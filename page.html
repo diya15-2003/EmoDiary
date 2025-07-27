@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmoDiary</title>
+    <style>
+        body {
+            background: #e4d1aa;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            background-color: #fff;
+            padding: 20px 32px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-right: 32px;
+        }
+
+        .navbar-title {
+            color: #444;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .navbar-download-btn {
+            background: #e4d1aa;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #444;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-right: 50px;
+        }
+
+        .navbar-download-btn:hover {
+            background: #af9e6e;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 80px; /* below navbar */
+            left: 0;
+            width: 60px;
+            height: calc(100vh - 80px);
+            background: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            z-index: 90;
+        }
+        .sidebar button {
+            background: none;
+            border: none;
+            margin: 16px 0;
+            cursor: pointer;
+            color: #555;
+            transition: color 0.3s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .sidebar button:hover {
+            color: #000;
+        }
+        .sidebar svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Diary container moves right to avoid sidebar */
+        .diary-container {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 40px 32px;
+            width: 90vw;
+            max-width: 600px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            margin-top: 100px;
+            margin-left: 80px; /* space for sidebar */
+            margin-right: auto;
+        }
+
+        /* Wrap textarea and delete button */
+        .diary-textarea-wrapper {
+            position: relative;
+            margin-bottom: 20px; /* space between pages */
+        }
+
+        /* Diary textarea */
+        .diary-textarea {
+            background: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 470px;
+            resize: vertical;
+            font-size: 1rem;
+            font-family: monospace;
+            line-height: 1.6;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Delete button on page */
+        .delete-page-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #9b9191;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 22px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+            user-select: none;
+        }
+        .delete-page-btn:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1 class="navbar-title">EmoDiary</h1>
+        <button class="navbar-download-btn" onclick="downloadDiary()">Download</button>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" aria-label="Sidebar">
+        <button title="Add Page" onclick="addPage()" aria-label="Add Page">
+            <!-- Plus icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+
+        <button title="Open Camera" onclick="toggleCamera()" aria-label="Open Camera" id = "cameraBtn">
+            <!-- Camera icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="13" r="3"></circle>
+                <path d="M2 7h4l3-3h6l3 3h4v11H2z"></path>
+            </svg>
+        </button>
+
+        <button title="Show Videos" onclick="showSampleVideos()" aria-label="Show Videos">
+            <!-- Video play icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        </button>
+    </div>
+
+    <div id="diaryPages" class="diary-container">
+        <div class="diary-textarea-wrapper">
+            <textarea class="diary-textarea" placeholder="Dear Diary..."></textarea>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const emotionColorMap = {
+            joy: '#ffe4e1',
+            sadness: '#cce0f4',
+            anger: '#ffd6cc',
+            fear: '#e6e6fa',
+            love: '#fce1f1',
+            surprise: '#ffffcc',
+            disgust: '#e0c5de',
+            neutral: '#fdf6e3'
+        };
+
+        let emotionColors = [];
+
+        function addPage() {
+            const diaryPages = document.getElementById('diaryPages');
+
+            // Wrapper div for textarea + delete button
+            const wrapper = document.createElement('div');
+            wrapper.className = 'diary-textarea-wrapper';
+
+            // Textarea element
+            const newPage = document.createElement('textarea');
+            newPage.className = 'diary-textarea';
+            newPage.placeholder = 'Dear Diary...';
+
+            // Delete button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-page-btn';
+            delBtn.type = 'button';
+            delBtn.title = 'Delete this page';
+            delBtn.innerHTML = '&times;';
+
+            // Delete handler
+            delBtn.onclick = () => {
+                const idx = Array.from(diaryPages.children).indexOf(wrapper);
+                wrapper.remove();
+                emotionColors.splice(idx, 1);
+                analyzeSentiment();
+            };
+
+            wrapper.appendChild(newPage);
+            wrapper.appendChild(delBtn);
+            diaryPages.appendChild(wrapper);
+
+            emotionColors.push(emotionColorMap.neutral);
+            analyzeSentiment();
+        }
+
+        // Stub: Implement your camera logic here
+        function openCamera() {
+            alert("Camera feature will be implemented here.");
+        }
+
+        // Stub: Show sample videos from WLASL dataset or placeholders
+        function showSampleVideos() {
+            alert("Sample videos feature will be implemented here.");
+        }
+
+        async function downloadDiary() {
+            alert("Download diary function called.");
+        }
+
+        function analyzeSentiment() {
+            console.log("Analyze sentiment placeholder.");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            emotionColors.push(emotionColorMap.neutral);
+            analyzeSentiment();
+            setInterval(analyzeSentiment, 25000);
+        });
+        let cameraOn = false;
+
+        function toggleCamera() {
+            fetch('/toggle-camera', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    cameraOn = !cameraOn;
+                    const btn = document.getElementById("cameraBtn");
+                    if (cameraOn) {
+                        btn.innerText = "❌ Stop Camera";
+                    } else {
+                        btn.innerText = "📷 Open Camera";
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
